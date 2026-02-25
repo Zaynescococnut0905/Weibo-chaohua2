@@ -1,44 +1,41 @@
-name: 游戏角色超话自动化监控
+name: 游戏角色超话自动化监控-App精准版
 
 on:
   schedule:
-    # 这里的 cron 表达式 '0 * * * *' 代表每个小时的第 0 分钟触发一次
-    - cron: '0 * * * *'
-  workflow_dispatch: # 这个配置非常关键，它允许你在 GitHub 网页上手动点击运行按钮，方便测试
+    - cron: '0 * * * *' # 每小时运行一次
+  workflow_dispatch: # 允许手动点击运行
 
 jobs:
   scrape_and_update:
-    runs-on: ubuntu-latest # 使用最新的 Linux 服务器
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
 
     steps:
-    - name: 1. 检出你的代码仓库
+    - name: 检出代码
       uses: actions/checkout@v3
 
-    - name: 2. 搭建 Python 3.9 环境
+    - name: 配置 Python 环境
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
 
-    - name: 3. 安装必备库 (必须要有 requirements.txt)
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+    - name: 安装依赖包
+      run: pip install requests pandas streamlit pytz plotly
 
-    - name: 4. 执行爬虫脚本抓取数据
-      # ⚠️ 注意：这里我写的是 main.py，因为你刚才报错截图里用的是这个名字。
-      # 如果你改成了 spider.py，这里也要跟着改！
+    - name: 运行爬虫
+      env:
+        # 核心：将保险箱里的秘密映射给代码
+        WEIBO_APP_URL: ${{ secrets.WEIBO_APP_URL }}
+        WEIBO_AUTH: ${{ secrets.WEIBO_AUTH }}
+        WEIBO_SESSION: ${{ secrets.WEIBO_SESSION }}
       run: python main.py 
 
-    - name: 5. 自动 Commit 并 Push 新的 CSV 数据
+    - name: 保存数据回 GitHub
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        
-        # 追踪新生成的或被修改的 CSV 文件
         git add game_character_top7.csv
-        
-        # 如果文件有变动就提交，如果没有变动（比如防爬虫拦截了）就忽略，防止整个任务报错中断
-        git commit -m "🤖 自动更新：抓取最新超话热度数据" || exit 0
-        
-        # 将更新推送到你的 GitHub 仓库
+        git commit -m "🤖 自动更新：抓取App端精准热度数据" || exit 0
         git push
