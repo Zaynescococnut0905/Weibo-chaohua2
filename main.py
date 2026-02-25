@@ -9,8 +9,8 @@ import pytz
 API_URL = "https://huati.weibo.cn/aj/discovery/rank?cate_id=126011&page=1&topic_to_page=&from=&wm=&isvivo=false"
 CSV_FILE_NAME = "game_character_top7.csv"
 
-# 已经帮你把之前发给我的 Cookie 完美填入了
-MY_COOKIE = "SUB=_2A25EOlqvDeRhGeFH7VsT9ybLyT-IHXVnFADnrDV6PUJbitAbLVmmkWtNerXwC4fEbcWBRLyOvfiXBljLND_6v-Kc"
+
+MY_COOKIE = os.environ.get("WEIBO_COOKIE", "")
 
 
 def parse_chinese_number(text):
@@ -92,4 +92,5 @@ def save_to_csv(time_str, character_list):
 
 
 if __name__ == '__main__':
+
     fetch_top7_data()
